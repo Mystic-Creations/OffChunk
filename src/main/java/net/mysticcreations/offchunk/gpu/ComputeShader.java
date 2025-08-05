@@ -28,8 +28,11 @@ import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
 import static org.lwjgl.opengl.GL20.glGetProgrami;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20.glGetShaderi;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
+import static org.lwjgl.opengl.GL20.glUniform1f;
+import static org.lwjgl.opengl.GL20.glUniform2i;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
@@ -44,11 +47,18 @@ public class ComputeShader {
     private final int textureID;
     private final int programID;
 
+    private final int chunkStartPosLoc;
+    private final int scaleLoc;
+
     public ComputeShader(int width, int height, String shaderFileName) {
         this.width = width;
         this.height = height;
         this.programID = loadComputeShader(shaderFileName);
         this.textureID = createTexture(width, height);
+
+        glUseProgram(programID);
+        chunkStartPosLoc = glGetUniformLocation(programID, "chunkStartPos");
+        scaleLoc = glGetUniformLocation(programID, "scale");
     }
 
     private int loadComputeShader(String shaderFileName) {
@@ -81,8 +91,15 @@ public class ComputeShader {
         return tex;
     }
 
-    public void dispatch() {
+    public void setUniforms(int chunkStartX, int chunkStartZ, float scale) {
         glUseProgram(programID);
+        glUniform2i(chunkStartPosLoc, chunkStartX, chunkStartZ);
+        glUniform1f(scaleLoc, scale);
+    }
+
+    public void dispatch(int chunkStartX, int chunkStartZ, float scale) {
+        glUseProgram(programID);
+        setUniforms(chunkStartX, chunkStartZ, scale);
         glBindImageTexture(0, textureID, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
         int groupsX = (int) Math.ceil(width / 16.0);
         int groupsY = (int) Math.ceil(height / 16.0);
@@ -97,18 +114,19 @@ public class ComputeShader {
         return buffer;
     }
 
-    private String readShaderFromClasspath(String path) {
-       try (InputStream in = ComputeShader.class.getResourceAsStream("/assets/offchunk/shaders/" + path)) {
-           if (in == null) throw new IOException("Shader file not found: " + path);
-           Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A");
-           return scanner.hasNext() ? scanner.next() : "";
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to load shader: " + path, e);
-       }
-    }
     public void cleanup() {
         glDeleteTextures(textureID);
         glDeleteProgram(programID);
+    }
+
+    private String readShaderFromClasspath(String path) {
+        try (InputStream in = ComputeShader.class.getResourceAsStream("/assets/offchunk/shaders/" + path)) {
+            if (in == null) throw new IOException("Shader file not found: " + path);
+            Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load shader: " + path, e);
+        }
     }
 
     public int getTextureID() {
