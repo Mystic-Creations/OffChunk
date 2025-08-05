@@ -39,16 +39,14 @@ import static org.lwjgl.opengl.GL42.glTexStorage2D;
 import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 import static org.lwjgl.opengl.GL43.glDispatchCompute;
 
-public class ComputeShaderHelper {
-
+public class ComputeShader {
     private final int width, height;
     private final int textureID;
     private final int programID;
 
-    public ComputeShaderHelper(int width, int height, String shaderFileName) {
+    public ComputeShader(int width, int height, String shaderFileName) {
         this.width = width;
         this.height = height;
-
         this.programID = loadComputeShader(shaderFileName);
         this.textureID = createTexture(width, height);
     }
@@ -100,7 +98,7 @@ public class ComputeShaderHelper {
     }
 
     private String readShaderFromClasspath(String path) {
-       try (InputStream in = ComputeShaderHelper.class.getResourceAsStream("/assets/offchunk/shaders/" + path)) {
+       try (InputStream in = ComputeShader.class.getResourceAsStream("/assets/offchunk/shaders/" + path)) {
            if (in == null) throw new IOException("Shader file not found: " + path);
            Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A");
            return scanner.hasNext() ? scanner.next() : "";
