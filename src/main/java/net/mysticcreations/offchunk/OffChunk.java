@@ -1,4 +1,4 @@
-package net.mysticcreations;
+package net.mysticcreations.offchunk;
 
 import net.fabricmc.api.ModInitializer;
 

@@ -1,4 +1,4 @@
-package net.mysticcreations.gpu;
+package net.mysticcreations.offchunk.gpu;
 
 import java.io.IOException;
 import java.io.InputStream;

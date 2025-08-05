@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.mysticcreations.OffChunk"
+			"net.mysticcreations.offchunk.OffChunk"
 		],
 		"client": [
-			"net.mysticcreations.OffChunkClient"
+          "net.mysticcreations.offchunk.OffChunkClient"
 		]
 	},
 	"mixins": [

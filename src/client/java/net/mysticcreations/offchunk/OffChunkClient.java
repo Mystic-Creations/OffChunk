@@ -1,7 +1,7 @@
-package net.mysticcreations;
+package net.mysticcreations.offchunk;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.mysticcreations.gpu.ComputeShaderHelper;
+import net.mysticcreations.offchunk.gpu.ComputeShaderHelper;
 
 import java.nio.FloatBuffer;
 
