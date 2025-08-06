@@ -111,7 +111,7 @@ public class ComputeShader {
     private String readShaderFromClasspath(String path) {
         try (InputStream in = ComputeShader.class.getResourceAsStream("/assets/offchunk/shaders/" + path)) {
             if (in == null) throw new IOException("Shader not found: " + path);
-            Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A");
+            Scanner scanner = new Scanner(in, StandardCharsets.UTF_8).useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";
         } catch (IOException e) {
             throw new RuntimeException("Shader read failed: " + path, e);

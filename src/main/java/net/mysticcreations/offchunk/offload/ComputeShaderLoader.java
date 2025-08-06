@@ -3,6 +3,7 @@ package net.mysticcreations.offchunk.offload;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.lwjgl.opengl.GL45;
@@ -36,7 +37,8 @@ public class ComputeShaderLoader {
 
     private static String readShaderFile(String path) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                ComputeShaderLoader.class.getClassLoader().getResourceAsStream("assets/offchunk/shaders/" + path),
+                Objects.requireNonNull(
+                        ComputeShaderLoader.class.getClassLoader().getResourceAsStream("assets/offchunk/shaders/" + path)),
                 StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         } catch (Exception e) {
