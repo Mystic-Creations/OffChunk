@@ -1,24 +1,22 @@
 package net.mysticcreations.offchunk.offload;
 
-import com.mojang.serialization.Codec;
-
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.HeightLimitView;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.GenerationStep;
-import net.minecraft.world.gen.chunk.*;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import net.minecraft.block.BlockState;
+import com.mojang.serialization.Codec;
+
+import net.minecraft.block.Blocks;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.HeightLimitView;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.Blender;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.chunk.VerticalBlockSample;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
 public class GpuChunkGen extends ChunkGenerator {
@@ -36,7 +34,6 @@ public class GpuChunkGen extends ChunkGenerator {
 
         return CompletableFuture.supplyAsync(() -> {
             float[] heightmap = noiseProvider.generateHeightMap(baseX, baseZ);
-
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     int height = 20 + Math.round(heightmap[z * 16 + x] * 80);
@@ -52,69 +49,36 @@ public class GpuChunkGen extends ChunkGenerator {
                     }
                 }
             }
-
             return chunk;
         }, executor);
     }
 
     @Override
-    public void buildSurface(ChunkRegion region, StructureAccessor structureAccessor, NoiseConfig noiseConfig, Chunk chunk) {
-        int baseX = chunk.getPos().getStartX();
-        int baseZ = chunk.getPos().getStartZ();
+    public void buildSurface(ChunkRegion region, StructureAccessor accessor, NoiseConfig config, Chunk chunk) {}
 
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                int worldY = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z);
-                BlockPos pos = new BlockPos(baseX + x, worldY, baseZ + z);
-                if (chunk.getBlockState(pos).isOf(Blocks.DIRT)) {
-                    chunk.setBlockState(pos, Blocks.GRASS_BLOCK.getDefaultState(), false);
-                }
-            }
-        }
+    @Override
+    public void carve(ChunkRegion region, long seed, NoiseConfig config, net.minecraft.world.biome.source.BiomeAccess access, StructureAccessor accessor, Chunk chunk, net.minecraft.world.gen.GenerationStep.Carver carver) {}
+
+    @Override
+    public void populateEntities(ChunkRegion region) {}
+
+    @Override public int getWorldHeight() { return 384; }
+    @Override public int getSeaLevel() { return 63; }
+    @Override public int getMinimumY() { return 0; }
+
+    @Override
+    public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig config) {
+        return new VerticalBlockSample(0, new net.minecraft.block.BlockState[getWorldHeight()]);
     }
 
     @Override
-    public void carve(ChunkRegion region, long seed, NoiseConfig noiseConfig, BiomeAccess biomeAccess, StructureAccessor accessor, Chunk chunk, GenerationStep.Carver carver) {
-    }
-
-    @Override
-    public void populateEntities(ChunkRegion region) {
-    }
-
-    @Override
-    public int getWorldHeight() {
-        return 384;
-    }
-
-    @Override
-    public int getSeaLevel() {
-        return 63;
-    }
-
-    @Override
-    public int getMinimumY() {
-        return 0;
-    }
-
-    @Override
-    public VerticalBlockSample getColumnSample(int x, int z, HeightLimitView world, NoiseConfig noiseConfig) {
-        BlockPos.Mutable pos = new BlockPos.Mutable(x, 0, z);
-        BlockState[] states = new BlockState[getWorldHeight()];
-        for (int y = 0; y < states.length; y++) {
-            pos.setY(y);
-            states[y] = y < 60 ? Blocks.STONE.getDefaultState() : Blocks.AIR.getDefaultState();
-        }
-        return new VerticalBlockSample(0, states);
-    }
-
-    @Override
-    public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noiseConfig) {
+    public int getHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig config) {
         return 80;
     }
 
     @Override
-    public void getDebugHudText(List<String> info, NoiseConfig noiseConfig, BlockPos pos) {
-        info.add("GpuChunkGen: GPU noise terrain");
+    public void getDebugHudText(List<String> info, NoiseConfig config, BlockPos pos) {
+        info.add("GpuChunkGen: GPU-driven terrain");
     }
 
     @Override
