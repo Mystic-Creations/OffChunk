@@ -3,14 +3,13 @@
   "id": "offchunk",
   "version": "${version}",
   "name": "OffChunk",
-  "description": "This is an example description! Tell everyone what your mod is about!",
-  "authors": ["Me!"],
+  "description": "Offloads chunk generation and loading computations to the GPU using OpenGL Compute Shaders",
+  "authors": ["Mystic Creations Team"],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://fabricmc.net/"
   },
   "license": "CC0-1.0",
-  "icon": "assets/offchunk/icon.png",
+  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "main": ["net.mysticcreations.offchunk.OffChunk"],
@@ -18,9 +17,6 @@
   },
   "mixins": [
     "offchunk.mixins.json"
-  ],
-  "clientMixins": [
-    "offchunk.client.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.16.14",

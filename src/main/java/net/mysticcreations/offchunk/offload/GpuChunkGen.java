@@ -1,4 +1,4 @@
-package net.mysticcreations.offchunk.gpu;
+package net.mysticcreations.offchunk.offload;
 
 import com.mojang.serialization.Codec;
 
@@ -22,7 +22,6 @@ import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
 public class GpuChunkGen extends ChunkGenerator {
-
     private final GpuNoiseProvider noiseProvider;
 
     public GpuChunkGen(BiomeSource settings, GpuNoiseProvider noiseProvider) {
@@ -65,7 +64,8 @@ public class GpuChunkGen extends ChunkGenerator {
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                BlockPos pos = chunk.getHeightmapPos(Heightmap.Type.WORLD_SURFACE, new BlockPos(baseX + x, 0, baseZ + z));
+                int worldY = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z);
+                BlockPos pos = new BlockPos(baseX + x, worldY, baseZ + z);
                 if (chunk.getBlockState(pos).isOf(Blocks.DIRT)) {
                     chunk.setBlockState(pos, Blocks.GRASS_BLOCK.getDefaultState(), false);
                 }
