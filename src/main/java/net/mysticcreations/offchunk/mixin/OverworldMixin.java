@@ -20,7 +20,7 @@ public class OverworldMixin {
             value = "INVOKE",
             target = "Lnet/minecraft/server/world/ServerWorld;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/server/world/WorkerExecutor;Lnet/minecraft/world/level/LevelProperties;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/world/dimension/DimensionType;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/server/WorldGenerationProgressListener;ZJLnet/minecraft/world/gen/chunk/ChunkGenerator;Z)V"
         ),
-        index = 9 // The argument index for ChunkGenerator
+        index = 9
     )
     private ChunkGenerator replaceChunkGenerator(ChunkGenerator original) {
         BiomeSource biomeSource = original.getBiomeSource();

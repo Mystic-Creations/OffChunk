@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import org.lwjgl.BufferUtils;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
@@ -28,11 +27,8 @@ import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
 import static org.lwjgl.opengl.GL20.glGetProgrami;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20.glGetShaderi;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
-import static org.lwjgl.opengl.GL20.glUniform1f;
-import static org.lwjgl.opengl.GL20.glUniform2i;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
@@ -47,18 +43,11 @@ public class ComputeShader {
     private final int textureID;
     private final int programID;
 
-    private final int chunkStartPosLoc;
-    private final int scaleLoc;
-
     public ComputeShader(int width, int height, String shaderFileName) {
         this.width = width;
         this.height = height;
         this.programID = loadComputeShader(shaderFileName);
         this.textureID = createTexture(width, height);
-
-        glUseProgram(programID);
-        chunkStartPosLoc = glGetUniformLocation(programID, "chunkStartPos");
-        scaleLoc = glGetUniformLocation(programID, "scale");
     }
 
     private int loadComputeShader(String shaderFileName) {
@@ -66,13 +55,15 @@ public class ComputeShader {
         int shader = glCreateShader(GL_COMPUTE_SHADER);
         glShaderSource(shader, shaderSource);
         glCompileShader(shader);
-        if (glGetShaderi(shader, GL_COMPILE_STATUS) == GL_FALSE)
+
+        if (glGetShaderi(shader, GL_COMPILE_STATUS) == 0)
             throw new RuntimeException("Shader compile error: " + glGetShaderInfoLog(shader));
 
         int program = glCreateProgram();
         glAttachShader(program, shader);
         glLinkProgram(program);
-        if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE)
+
+        if (glGetProgrami(program, GL_LINK_STATUS) == 0)
             throw new RuntimeException("Shader link error: " + glGetProgramInfoLog(program));
 
         glDeleteShader(shader);
@@ -87,10 +78,8 @@ public class ComputeShader {
         return tex;
     }
 
-    public void dispatch(int chunkStartX, int chunkStartZ, float scale) {
+    public void dispatch() {
         glUseProgram(programID);
-        glUniform2i(chunkStartPosLoc, chunkStartX, chunkStartZ);
-        glUniform1f(scaleLoc, scale);
         glBindImageTexture(0, textureID, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glDispatchCompute((int) Math.ceil(width / 16.0), (int) Math.ceil(height / 16.0), 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
