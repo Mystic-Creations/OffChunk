@@ -1,12 +1,14 @@
 {
-	"required": true,
-	"package": "net.mysticcreations.offchunk.mixin",
-	"compatibilityLevel": "JAVA_17",
-	"mixins": [],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+  "required": true,
+  "package": "net.mysticcreations.offchunk.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "OverworldMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
 }
