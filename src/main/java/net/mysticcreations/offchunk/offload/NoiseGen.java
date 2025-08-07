@@ -1,8 +1,8 @@
 package net.mysticcreations.offchunk.offload;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL45;
 
 public class NoiseGen {
@@ -13,31 +13,36 @@ public class NoiseGen {
     }
 
     public float[] generateHeightmap(int chunkX, int chunkZ, int width, int height, float scale) {
-        int image = GL45.glGenTextures();
-        GL45.glBindTexture(GL45.GL_TEXTURE_2D, image);
-        GL45.glTexStorage2D(GL45.GL_TEXTURE_2D, 1, GL45.GL_RGBA32F, width, height);
-        GL45.glBindImageTexture(0, image, 0, false, 0, GL45.GL_WRITE_ONLY, GL45.GL_RGBA32F);
+        int size = width * height;
+        int bufferSize = size * Float.BYTES;
+
+        int ssbo = GL45.glGenBuffers();
+        GL45.glBindBuffer(GL45.GL_SHADER_STORAGE_BUFFER, ssbo);
+        GL45.glBufferData(GL45.GL_SHADER_STORAGE_BUFFER, bufferSize, GL45.GL_DYNAMIC_COPY);
+        GL45.glBindBufferBase(GL45.GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
         GL45.glUseProgram(program);
 
-        int locStart = GL45.glGetUniformLocation(program, "chunkStartPos");
-        GL45.glUniform2i(locStart, chunkX, chunkZ);
-
+        int locChunkStart = GL45.glGetUniformLocation(program, "chunkStartPos");
         int locScale = GL45.glGetUniformLocation(program, "scale");
+        int locWidth = GL45.glGetUniformLocation(program, "width");
+
+        GL45.glUniform2i(locChunkStart, chunkX, chunkZ);
         GL45.glUniform1f(locScale, scale);
+        GL45.glUniform1i(locWidth, width);
 
-        GL45.glDispatchCompute(width / 16, height / 16, 1);
-        GL45.glMemoryBarrier(GL45.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        GL45.glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
+        GL45.glMemoryBarrier(GL45.GL_SHADER_STORAGE_BARRIER_BIT);
 
-        FloatBuffer out = BufferUtils.createFloatBuffer(width * height * 4);
-        GL45.glGetTextureImage(image, 0, GL45.GL_RGBA, GL45.GL_FLOAT, out);
+        GL45.glBindBuffer(GL45.GL_SHADER_STORAGE_BUFFER, ssbo);
+        ByteBuffer byteBuffer = GL45.glMapBuffer(GL45.GL_SHADER_STORAGE_BUFFER, GL45.GL_READ_ONLY);
+        FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
 
-        float[] heightmap = new float[width * height];
-        for (int i = 0; i < heightmap.length; i++) {
-            heightmap[i] = out.get(i * 4); 
-        }
+        float[] heightmap = new float[size];
+        floatBuffer.get(heightmap);
 
-        GL45.glDeleteTextures(image);
+        GL45.glUnmapBuffer(GL45.GL_SHADER_STORAGE_BUFFER);
+        GL45.glDeleteBuffers(ssbo);
         GL45.glUseProgram(0);
 
         return heightmap;

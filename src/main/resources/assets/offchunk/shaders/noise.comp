@@ -1,15 +1,14 @@
 #version 430
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout (local_size_x = 16, local_size_y = 16) in;
 
-layout(std430, binding = 0) buffer OutputBuffer {
-    float values[];
+layout(std430, binding = 0) buffer HeightmapBuffer {
+    float heightmap[];
 };
-
-layout(rgba32f, binding = 1) uniform writeonly image2D outputImage;
 
 uniform ivec2 chunkStartPos;
 uniform float scale;
+uniform int width;
 
 float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -65,13 +64,8 @@ float fractalPerlin(vec2 p, int octaves, float persistence, float lacunarity) {
 void main() {
     ivec2 id = ivec2(gl_GlobalInvocationID.xy);
     ivec2 worldPos = chunkStartPos + id;
-
     vec2 noiseInput = vec2(worldPos) * scale;
-
     float height = fractalPerlin(noiseInput, 5, 0.5, 2.0);
-
-    uint index = uint(id.y * 16 + id.x);
-    values[index] = height;
-
-    imageStore(outputImage, id, vec4(4.0, 4.0, 4.0, 4.0));
+    int index = id.y * width + id.x;
+    heightmap[index] = height;
 }
